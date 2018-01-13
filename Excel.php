@@ -2,10 +2,10 @@
 
 class Excel {
 
-	public $filename 		= 'excel-doc';
+	public $filename 		= 'Demo';
 	public $custom_titles;
 
-	public function make_from_db($db_results) {
+	public function make_from_db($db_results,$titles=[]) {
 		$data 		= NULL;
 		$fields 	= $db_results->field_data();
 
@@ -13,25 +13,11 @@ class Excel {
 			show_error('The table appears to have no data');
 		}
 		else {
-			$headers = $this->titles($fields);
-
-			foreach ($db_results->result() AS $row) {
-				$line = '';
-				foreach ($row AS $value) {
-					if (!isset($value) OR $value == '') {
-						$value = "\t";
-					}
-					else {
-						$value = str_replace('"', '""', $value);
-						$value = '"' . $value . '"' . "\t";
-					}
-					$line .= $value;
-				}
-				$data .= trim($line) . "\n";
-			}
-			$data = str_replace("\r", "", $data);
-
-			$this->generate($headers, $data);
+			if(empty($titles))
+				$headers = $this->titles($fields);
+			else
+				$headers=$titles;
+			$this->generate($headers, $db_results->result_array());
 		}
 	}
 
@@ -41,35 +27,24 @@ class Excel {
 		if (!is_array($array)) {
 			show_error('The data supplied is not a valid array');
 		}
-		else {
+		else { 
 			$headers = $this->titles($titles);
-
-			if (is_array($array)) {
-				foreach ($array AS $row) {
-					$line = '';
-					foreach ($row AS $value) {
-						if (!isset($value) OR $value == '') {
-							$value = "\t";
-						}
-						else {
-							$value = str_replace('"', '""', $value);
-							$value = '"' . $value . '"' . "\t";
-						}
-						$line .= $value;
-					}
-					$data .= trim($line) . "\n";
-				}
-				$data = str_replace("\r", "", $data);
-
-				$this->generate($headers, $data);
+			$this->generate($headers,$array);
 			}
 		}
-	}
 
 	private function generate($headers, $data) {
 		$this->set_headers();
-
-		echo "$headers\n$data";  
+		/*echo "<pre>";
+		print_r($data);die();*/
+		// create a file pointer connected to the output stream
+		$file = fopen('php://output', 'w');
+		//fputcsv($file, array('Column 1', 'Column 2', 'Column 3', 'Column 4', 'Column 5'));
+		fputcsv($file, $headers);
+		foreach ($data as $row)
+		{
+		fputcsv($file, $row);
+		}
 	}
 
 	public function titles($titles) {
@@ -79,7 +54,7 @@ class Excel {
 			if (is_null($this->custom_titles)) {
 				if (is_array($titles)) {
 					foreach ($titles AS $title) {
-						$headers[] = $title;
+						$headers[] = $title->name;
 					}
 				}
 				else {
@@ -97,8 +72,8 @@ class Excel {
 					$headers[] = $this->custom_titles[array_search($key, $keys)];
 				}
 			}
-
-			return implode("\t", $headers);
+			//print_r($headers);die();
+			return ($headers);
 		}
 	}
 
@@ -109,7 +84,7 @@ class Excel {
 	    header("Content-Type: application/force-download");
 	    header("Content-Type: application/octet-stream");
 	    header("Content-Type: application/download");;
-	    header("Content-Disposition: attachment;filename=$this->filename.xls");
+	    header("Content-Disposition: attachment;filename=$this->filename.csv");
 	    header("Content-Transfer-Encoding: binary ");
 	}
 }
