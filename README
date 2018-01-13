@@ -1,9 +1,8 @@
-Codeigniter Excel Library
+Codeigniter CSV Library
 
-Original inspiration for this library from http://codeigniter.com/wiki/Excel_Plugin
 
 What it does:
-Takes an active record result or a data array and creates an excel spreadsheet. Also, it's capable of passing custom titles and filename. Nothing super special but it gets the job done!
+Takes an active record result or a data array and creates an csv file. Also, it's capable of passing custom titles and filename. Nothing super special but it gets the job done!
 
 Instructions:
 Just drop it in your libraries folder.
@@ -14,10 +13,13 @@ To create from database result
 public function export() {
 	$this->load->library('excel');
 
-	$sql = $this->db->get('dbtable');
+	$record = $this->db->get('dbtable');
 
-	$this->excel->filename = 'abc123';
-	$this->excel->make_from_db($sql);
+	$this->excel->filename = 'Demo';
+	$this->excel->make_from_db($record);
+	//if you want to custome header then pass an array as third parameter
+	$custome_header=['Title1','Title2'];
+	$this->excel->make_from_db($record,$custome_header);
 }
 ?>
 
